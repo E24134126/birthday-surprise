@@ -2,43 +2,45 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>生日驚喜倒數</title>
+<title>辰少爺的生日驚喜 🎂</title>
+
 <style>
-  /* 整體樣式 */
   body { 
-    font-family: 'Comic Sans MS', cursive; 
-    background-color: #FAF5EB;  /* 淡暖色背景 */
-    text-align: center; 
-    padding-top: 100px; 
+    font-family: 'Comic Sans MS', cursive;
+    background-color: #FAF5EB;
+    text-align: center;
+    padding-top: 60px;
     margin: 0;
   }
-
-  /* 標題 */
   #title { 
-    font-size: 50px; 
-    color: #FF6FA5; 
-    margin-bottom: 20px;
-    text-shadow: 2px 2px 5px rgba(0,0,0,0.3);
-    transition: all 0.5s;
+    font-size: 45px;
+    color: #FF6FA5;
+    transition: 0.5s;
+    margin-bottom: 15px;
   }
-
-  /* 倒數文字閃爍 */
-  #countdown { 
-    font-size: 40px; 
-    color: #FFB800; 
-    margin-bottom: 30px;
-    text-shadow: 2px 2px 5px rgba(0,0,0,0.2);
-    animation: blink 1s step-start infinite;
+  #countdown {
+    font-size: 35px;
+    color: #FFB800;
+    margin-bottom: 25px;
   }
-
-  @keyframes blink {
-    50% { opacity: 0.2; }
+  #startBtn {
+    display: none;
+    margin-top: 20px;
+    padding: 15px 30px;
+    font-size: 25px;
+    background-color: #FF8C00;
+    border: none;
+    border-radius: 12px;
+    color: white;
+    cursor: pointer;
+    box-shadow: 0px 4px 10px rgba(0,0,0,0.3);
   }
-
-  /* 影片 */
+  #startBtn:hover {
+    background-color: #ff7a00;
+  }
   #videoLink { 
-    display: none; 
-    margin-top: 30px; 
+    display: none;
+    margin-top: 30px;
   }
   video {
     width: 90vw;
@@ -52,8 +54,10 @@
 </head>
 <body>
 
-<h1 id="title">生日驚喜倒數中 🎂🎉</h1>
+<h1 id="title">辰少爺的生日驚喜倒數 🎉</h1>
 <div id="countdown"></div>
+
+<button id="startBtn">按我開始倒數 🎁</button>
 
 <div id="videoLink">
   <video controls>
@@ -63,43 +67,103 @@
 </div>
 
 <script>
-  // 設定生日日期
-  var birthday = new Date(2025, 12, 03); // 1月3日
-  var today = new Date();
+  // 目標生日（2026/01/03）
+  var birthday = new Date(2026, 0, 3);
+  var title = document.getElementById("title");
+  var countdownEl = document.getElementById("countdown");
+  var startBtn = document.getElementById("startBtn");
 
-  if(today < birthday){
-    document.getElementById("title").innerHTML = "生日還沒到喔 🎁";
-    document.getElementById("countdown").style.display = "none";
-  } else {
-    // 倒數10秒
-    var countdownTime = 10;
-    var countdownElement = document.getElementById("countdown");
-    countdownElement.innerHTML = countdownTime + " 秒";
+  function updateCountdown() {
+    var now = new Date();
+    var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    var diff = birthday - now;
 
-    var interval = setInterval(function(){
-      countdownTime--;
+    // ⭐ 生日「之前」→ 天/時/分/秒倒數
+    if (today < birthday) {
+      var totalSec = Math.floor(diff / 1000);
+      var days = Math.floor(totalSec / 86400);
+      var hours = Math.floor((totalSec % 86400) / 3600);
+      var mins = Math.floor((totalSec % 3600) / 60);
+      var secs = totalSec % 60;
 
-      var title = document.getElementById("title");
+      title.innerHTML = "辰少爺別急～驚喜還在路上 🎁";
+      countdownEl.innerHTML =
+        days + " 天 " +
+        hours.toString().padStart(2, '0') + " 時 " +
+        mins.toString().padStart(2,'0') + " 分 " +
+        secs.toString().padStart(2,'0') + " 秒";
+    }
 
-      // 動態文字
-      if(countdownTime <= 3 && countdownTime > 0){
-        title.innerHTML = "快到了！準備看影片 🎁";
-        title.style.color = "#FF0000";
-      } else if(countdownTime <= 5 && countdownTime > 3){
-        title.innerHTML = "倒數中 ⏳";
-        title.style.color = "#FF8C00";
-      }
+    // ⭐ 生日「當天」→ 點按鈕才倒數
+    else if (today.getTime() === birthday.getTime()) {
+      title.innerHTML = "辰少爺 🎂 今天是你的生日 ✨";
+      countdownEl.innerHTML = "按下去準備接收你的生日大驚喜喔！";
+      startBtn.style.display = "inline-block";
+      clearInterval(mainTimer);
+    }
 
-      if(countdownTime > 0){
-        countdownElement.innerHTML = countdownTime + " 秒";
+    // ⭐ 生日「後」→ 自動倒數 3 秒鐘（可回顧）
+    else if (today > birthday) {
+      startReviewCountdown();
+      clearInterval(mainTimer);
+    }
+  }
+
+  // 🎁 生日後回顧 → 自動倒數 3 秒
+  function startReviewCountdown() {
+    var count = 3;
+    title.innerHTML = "回顧時刻 🎬";
+    countdownEl.innerHTML = count + " 秒";
+
+    var timer = setInterval(function () {
+      count--;
+      if (count > 0) {
+        countdownEl.innerHTML = count + " 秒";
       } else {
-        clearInterval(interval);
-        countdownElement.style.display = "none";
+        clearInterval(timer);
         title.style.display = "none";
+        countdownEl.style.display = "none";
         document.getElementById("videoLink").style.display = "block";
       }
     }, 1000);
   }
+
+  // 🎉 生日當天 → 手動 10 秒倒數
+  startBtn.addEventListener("click", function () {
+    startBtn.style.display = "none";
+    startBirthdayCountdown();
+  });
+
+  function startBirthdayCountdown() {
+    var count = 10;
+    countdownEl.innerHTML = count + " 秒";
+
+    var timer = setInterval(function () {
+      count--;
+
+      if (count <= 5 && count > 3) {
+        title.innerHTML = "倒數中 ⏳";
+        title.style.color = "#FF8C00";
+      }
+      if (count <= 3 && count > 0) {
+        title.innerHTML = "準備好囉 🎁";
+        title.style.color = "#FF0000";
+      }
+
+      if (count > 0) {
+        countdownEl.innerHTML = count + " 秒";
+      } else {
+        clearInterval(timer);
+        title.style.display = "none";
+        countdownEl.style.display = "none";
+        document.getElementById("videoLink").style.display = "block";
+      }
+    }, 1000);
+  }
+
+  // 每秒更新 → 僅生日前顯示
+  var mainTimer = setInterval(updateCountdown, 1000);
+  updateCountdown();
 </script>
 
 </body>
