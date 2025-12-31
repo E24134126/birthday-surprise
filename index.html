@@ -2,170 +2,251 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>loading...</title>
-
 <style>
+  :root {
+    --primary-color: #4A5568; 
+    --accent-color: #2D3748;
+    --bg-color: #E2E8F0;
+    --card-bg: #FFFFFF;
+    --font-main: 'Courier New', monospace;
+  }
+
+  /* 溫馨回顧主題 */
+  body.birthday-theme {
+    --primary-color: #7D5A50;
+    --accent-color: #E58E26;
+    --bg-color: #FAF5EB;
+    --card-bg: rgba(255, 255, 255, 0.95);
+    --font-main: 'Helvetica Neue', 'PingFang TC', sans-serif;
+    transition: background-color 1.5s ease;
+  }
+
   body { 
-    font-family: 'Comic Sans MS', cursive;
-    background-color: #FAF5EB;
-    text-align: center;
-    padding-top: 60px;
+    font-family: var(--font-main);
+    background-color: var(--bg-color);
     margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
   }
-  #title { 
-    font-size: 45px;
-    color: #FF6FA5;
-    transition: 0.5s;
-    margin-bottom: 15px;
-  }
-  #countdown {
-    font-size: 35px;
-    color: #FFB800;
-    margin-bottom: 25px;
-  }
-  #startBtn {
+
+  /* 背景裝飾 */
+  .decoration {
+    position: fixed;
+    bottom: -100px;
+    opacity: 0.6;
+    z-index: -1;
     display: none;
-    margin-top: 20px;
-    padding: 15px 30px;
-    font-size: 25px;
-    background-color: #FF8C00;
-    border: none;
+    animation: floatUp 10s infinite ease-in;
+  }
+  @keyframes floatUp {
+    0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+    20% { opacity: 0.6; }
+    100% { transform: translateY(-120vh) rotate(15deg); opacity: 0; }
+  }
+
+  .container {
+    background: var(--card-bg);
+    padding: 40px 25px;
     border-radius: 12px;
-    color: white;
-    cursor: pointer;
-    box-shadow: 0px 4px 10px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    width: 90%;
+    max-width: 420px;
+    text-align: center;
+    z-index: 10;
+    border: 1px solid #CBD5E0;
+    transition: all 1s ease;
   }
-  #startBtn:hover {
-    background-color: #ff7a00;
-  }
-  #videoLink { 
-    display: none;
-    margin-top: 30px;
-  }
-  video {
-    width: 90vw;
-    height: auto;
-    max-width: 800px;
-    max-height: 80vh;
-    border-radius: 15px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.3);
-  }
+
+  #title { font-size: 20px; color: var(--primary-color); margin-bottom: 10px; height: 80px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+  #countdown { font-size: 30px; font-weight: bold; color: var(--accent-color); margin: 15px 0; height: 60px; min-width: 280px; display: inline-flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.03); border-radius: 8px; }
+  #hint { font-size: 12px; color: #718096; height: 20px; margin-bottom: 10px; }
+  
+  #videoLink { display: none; width: 100%; opacity: 0; transition: opacity 1s ease; }
+  video { width: 100%; max-height: 60vh; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); background: #000; }
+
+  /* 密碼層 */
+  #passwordOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1A202C; display: flex; justify-content: center; align-items: center; z-index: 999; }
+  #passwordBox { background: #EDF2F7; padding: 35px; border-radius: 8px; text-align: center; width: 85%; max-width: 320px; border: 1px solid #A0AEC0; }
+  #pwInput { width: 100%; padding: 12px; margin: 20px 0; border: 1px solid #A0AEC0; font-size: 16px; text-align: center; outline: none; text-transform: uppercase; }
+  #pwSubmit { background: #4A5568; color: white; border: none; padding: 12px; cursor: pointer; width: 100%; font-weight: bold; }
+  #startBtn { display: none; padding: 15px 45px; font-size: 18px; background: #4A5568; border: none; color: white; cursor: pointer; border-radius: 4px; font-weight: bold; }
+
+  .num-animate { animation: numStep 0.3s ease-out; }
+  @keyframes numStep { 0% { transform: scale(0.8); opacity: 0.5; } 100% { transform: scale(1); opacity: 1; } }
 </style>
 </head>
-<body>
+<body id="bodyTag">
 
-<h1 id="title">辰少爺的生日驚喜倒數 🎉</h1>
-<div id="countdown"></div>
+<div id="decorations"></div>
 
-<button id="startBtn">按我開始倒數 🎁</button>
+<div id="passwordOverlay">
+  <div id="passwordBox">
+    <h3 style="color: #2D3748; margin:0; font-family: monospace;">ACCESS CONTROL</h3>
+    <p id="pwSubText" style="color:#718096; font-size: 12px; margin-top: 8px;">NODE_03: SECURITY VALIDATION</p>
+    <input id="pwInput" type="text" placeholder="ACCESS CODE">
+    <button id="pwSubmit">AUTHENTICATE</button>
+    <div id="pwHint" style="margin-top:15px; color:#A0AEC0; font-size: 11px;">[System]: Waiting for entry.</div>
+  </div>
+</div>
 
-<div id="videoLink">
-  <video controls>
-    <source src="video.mp4" type="video/mp4">
-    你的瀏覽器不支援影片播放。
-  </video>
+<div class="container" id="mainContainer">
+  <div id="title">INITIALIZING...</div>
+  <div id="hint">SYNC_STATUS: PENDING</div>
+  <div id="countdown">--:--:--:--</div>
+  <div id="actionArea"><button id="startBtn">EXECUTE_STREAM</button></div>
+  <div id="videoLink">
+    <video controls id="birthdayVideo" preload="auto">
+      <source src="video.mp4" type="video/mp4">
+    </video>
+    <p id="videoFooter" style="margin-top:20px; color: var(--primary-color); font-weight:bold;">Happy Birthday to 辰少爺 ✨</p>
+  </div>
 </div>
 
 <script>
-  // 目標生日（2026/01/03）
-  var birthday = new Date(2026, 0, 3);
-  var title = document.getElementById("title");
-  var countdownEl = document.getElementById("countdown");
-  var startBtn = document.getElementById("startBtn");
+// --- [ 設定區域 ] ---
+const birthdayDate = new Date(2026, 0, 3); // 1月3日
+const correctPassword = "JAN03"; 
 
-  function updateCountdown() {
-    var now = new Date();
-    var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    var diff = birthday - now;
+const titleEl = document.getElementById("title");
+const countdownEl = document.getElementById("countdown");
+const startBtn = document.getElementById("startBtn");
+const overlay = document.getElementById("passwordOverlay");
+const hintBox = document.getElementById("pwHint");
+const bodyTag = document.getElementById("bodyTag");
+let statusInterval; 
+let wrongCount = 0;
 
-    // ⭐ 生日「之前」→ 天/時/分/秒倒數
-    if (today < birthday) {
-      var totalSec = Math.floor(diff / 1000);
-      var days = Math.floor(totalSec / 86400);
-      var hours = Math.floor((totalSec % 86400) / 3600);
-      var mins = Math.floor((totalSec % 3600) / 60);
-      var secs = totalSec % 60;
+// 1. 密碼驗證邏輯
+document.getElementById("pwSubmit").addEventListener("click", function(){
+  const input = document.getElementById("pwInput").value.trim().toUpperCase();
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  
+  const isBirthday = (today.getTime() === birthdayDate.getTime());
+  const isAfterBirthday = (today.getTime() > birthdayDate.getTime());
 
-      title.innerHTML = "辰少爺別急～驚喜還在路上 🎁";
-      countdownEl.innerHTML =
-        days + " 天 " +
-        hours.toString().padStart(2, '0') + " 時 " +
-        mins.toString().padStart(2,'0') + " 分 " +
-        secs.toString().padStart(2,'0') + " 秒";
-    }
-
-    // ⭐ 生日「當天」→ 點按鈕才倒數
-    else if (today.getTime() === birthday.getTime()) {
-      title.innerHTML = "辰少爺 🎂 今天是你的生日 ✨";
-      countdownEl.innerHTML = "按下去準備接收你的生日大驚喜喔！";
-      startBtn.style.display = "inline-block";
-      clearInterval(mainTimer);
-    }
-
-    // ⭐ 生日「後」→ 自動倒數 3 秒鐘（可回顧）
-    else if (today > birthday) {
-      startReviewCountdown();
-      clearInterval(mainTimer);
-    }
-  }
-
-  // 🎁 生日後回顧 → 自動倒數 3 秒
-  function startReviewCountdown() {
-    var count = 3;
-    title.innerHTML = "回顧時刻 🎬";
-    countdownEl.innerHTML = count + " 秒";
-
-    var timer = setInterval(function () {
-      count--;
-      if (count > 0) {
-        countdownEl.innerHTML = count + " 秒";
+  if(input === correctPassword){
+    overlay.style.opacity = "0";
+    setTimeout(() => { 
+      overlay.style.display = "none"; 
+      if(isAfterBirthday) {
+        showRetrospective(); // 生日後直接進入回顧
       } else {
-        clearInterval(timer);
-        title.style.display = "none";
-        countdownEl.style.display = "none";
-        document.getElementById("videoLink").style.display = "block";
+        startMainLogic(); 
       }
-    }, 1000);
+    }, 500);
+  } else {
+    // 錯誤提示邏輯
+    if(today < birthdayDate){
+      const fakes = ["Error 403: 權限尚未開放","Error 505: 系統目前鎖定","Error 999: 無效的存取碼"];
+      hintBox.innerText = fakes[Math.floor(Math.random()*fakes.length)];
+    } else {
+      const reals = ["提示：月份英文(三碼) + 日期", "提示：JANXX", "密碼就是「JAN03」"];
+      hintBox.innerText = reals[Math.min(wrongCount, reals.length-1)];
+      wrongCount++;
+    }
+    document.getElementById("pwInput").value = "";
   }
+});
 
-  // 🎉 生日當天 → 手動 10 秒倒數
-  startBtn.addEventListener("click", function () {
-    startBtn.style.display = "none";
-    startBirthdayCountdown();
-  });
+function startMainLogic() {
+  updateStatus();
+  statusInterval = setInterval(updateStatus, 1000); 
+}
 
-  function startBirthdayCountdown() {
-    var count = 10;
-    countdownEl.innerHTML = count + " 秒";
+// 2. 更新主畫面狀態
+function updateStatus() {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-    var timer = setInterval(function () {
-      count--;
-
-      if (count <= 5 && count > 3) {
-        title.innerHTML = "倒數中 ⏳";
-        title.style.color = "#FF8C00";
-      }
-      if (count <= 3 && count > 0) {
-        title.innerHTML = "準備好囉 🎁";
-        title.style.color = "#FF0000";
-      }
-
-      if (count > 0) {
-        countdownEl.innerHTML = count + " 秒";
-      } else {
-        clearInterval(timer);
-        title.style.display = "none";
-        countdownEl.style.display = "none";
-        document.getElementById("videoLink").style.display = "block";
-      }
-    }, 1000);
+  if(today < birthdayDate){
+    const diff = birthdayDate - now;
+    const days = Math.floor(diff / (1000*60*60*24));
+    const h = Math.floor((diff % (1000*60*60*24))/(1000*60*60)).toString().padStart(2,'0');
+    const m = Math.floor((diff % (1000*60*60))/(1000*60)).toString().padStart(2,'0');
+    const s = Math.floor((diff % (1000*60))/1000).toString().padStart(2,'0');
+    titleEl.innerHTML = "SYSTEM DATA SYNCING...";
+    countdownEl.innerHTML = `T-${days}:${h}:${m}:${s}`;
+  } 
+  else if(today.getTime() === birthdayDate.getTime()){
+    titleEl.innerHTML = "DATA PACK READY.";
+    document.getElementById("hint").innerHTML = "DATE CHECK: 01-03 SUCCESS";
+    countdownEl.innerHTML = "READY";
+    startBtn.style.display = "inline-block";
   }
+}
 
-  // 每秒更新 → 僅生日前顯示
-  var mainTimer = setInterval(updateCountdown, 1000);
-  updateCountdown();
+// 3. 回顧模式 (生日後)
+function showRetrospective() {
+  bodyTag.classList.add("birthday-theme");
+  document.title = "回顧時刻 🎬";
+  titleEl.innerHTML = "回顧驚喜時刻 🎬";
+  countdownEl.style.display = "none";
+  document.getElementById("hint").style.display = "none";
+  document.getElementById("videoFooter").innerHTML = "永遠珍藏這份回憶 ❤️";
+  
+  startDecorations();
+  const videoContainer = document.getElementById("videoLink");
+  videoContainer.style.display = "block";
+  setTimeout(() => { videoContainer.style.opacity = 1; }, 50);
+}
+
+// 4. 最後倒數 (10秒)
+startBtn.addEventListener("click", function(){
+  clearInterval(statusInterval);
+  startBtn.style.display = "none";
+  let count = 10;
+  titleEl.innerHTML = "正在解碼加密檔案...";
+  countdownEl.innerHTML = `<span class="num-animate">${count}</span>`;
+
+  const finalTimer = setInterval(function(){
+    count--;
+    if (count < 0) { clearInterval(finalTimer); showVideo(); return; }
+    countdownEl.innerHTML = `<span class="num-animate">${count}</span>`;
+
+    if (count === 5) {
+      bodyTag.classList.add("birthday-theme"); 
+      document.title = "Happy Birthday! ✨";
+      titleEl.style.opacity = 0;
+      setTimeout(() => {
+        titleEl.innerHTML = "解鎖成功！辰少爺生日快樂 ✨";
+        titleEl.style.opacity = 1;
+      }, 400);
+      document.getElementById("mainContainer").style.borderRadius = "30px";
+      startDecorations(); 
+    }
+  }, 1000);
+});
+
+function startDecorations() {
+  const decor = document.getElementById('decorations');
+  const emojis = ['🎈', '🍭', '⭐', '🎂', '💖', '🎉'];
+  setInterval(() => {
+    const span = document.createElement('span');
+    span.className = 'decoration';
+    span.style.display = 'block';
+    span.innerText = emojis[Math.floor(Math.random()*emojis.length)];
+    span.style.left = Math.random()*100 + 'vw';
+    span.style.fontSize = (Math.random()*20+20)+'px';
+    decor.appendChild(span);
+    setTimeout(() => span.remove(), 10000);
+  }, 700);
+}
+
+function showVideo() {
+  titleEl.style.display = "none"; countdownEl.style.display = "none";
+  document.getElementById("hint").style.display = "none";
+  document.getElementById("actionArea").style.display = "none";
+  const videoContainer = document.getElementById("videoLink");
+  videoContainer.style.display = "block";
+  setTimeout(() => { videoContainer.style.opacity = 1; }, 50);
+}
 </script>
 
 </body>
 </html>
-
